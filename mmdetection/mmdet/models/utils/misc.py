@@ -1,12 +1,42 @@
+# Copyright (c) OpenMMLab. All rights reserved.
+from torch.autograd import Function
 from torch.nn import functional as F
 
 
-def interpolate_as(source, target, mode='bilinear', align_corners=False):
-    """Interpolate the source to the shape of the target.
+class SigmoidGeometricMean(Function):
+    """Forward and backward function of geometric mean of two sigmoid
+    functions.
 
-    Interpolate the source to the shape of target. The input must be a
-    Tensor, but the target can be a Tensor or a np.ndarray with the shape
-    (..., target_h, target_w).
+    This implementation with analytical gradient function substitutes
+    the autograd function of (x.sigmoid() * y.sigmoid()).sqrt(). The
+    original implementation incurs none during gradient backprapagation
+    if both x and y are very small values.
+    """
+
+    @staticmethod
+    def forward(ctx, x, y):
+        x_sigmoid = x.sigmoid()
+        y_sigmoid = y.sigmoid()
+        z = (x_sigmoid * y_sigmoid).sqrt()
+        ctx.save_for_backward(x_sigmoid, y_sigmoid, z)
+        return z
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        x_sigmoid, y_sigmoid, z = ctx.saved_tensors
+        grad_x = grad_output * z * (1 - x_sigmoid) / 2
+        grad_y = grad_output * z * (1 - y_sigmoid) / 2
+        return grad_x, grad_y
+
+
+sigmoid_geometric_mean = SigmoidGeometricMean.apply
+
+
+def interpolate_as(source, target, mode='bilinear', align_corners=False):
+    """Interpolate the `source` to the shape of the `target`.
+
+    The `source` must be a Tensor, but the `target` can be a Tensor or a
+    np.ndarray with the shape (..., target_h, target_w).
 
     Args:
         source (Tensor): A 3D/4D Tensor with the shape (N, H, W) or
@@ -23,7 +53,7 @@ def interpolate_as(source, target, mode='bilinear', align_corners=False):
     assert len(target.shape) >= 2
 
     def _interpolate_as(source, target, mode='bilinear', align_corners=False):
-        """Interpolate the source (4D) to the shape of the target."""
+        """Interpolate the `source` (4D) to the shape of the `target`."""
         target_h, target_w = target.shape[-2:]
         source_h, source_w = source.shape[-2:]
         if target_h != source_h or target_w != source_w:

@@ -1,3 +1,4 @@
+# Copyright (c) OpenMMLab. All rights reserved.
 import os.path as osp
 
 import mmcv
@@ -212,6 +213,9 @@ class LoadAnnotations:
             annotation. Default: False.
         poly2mask (bool): Whether to convert the instance masks from polygons
             to bitmaps. Default: True.
+        denorm_bbox (bool): Whether to convert bbox from relative value to
+            absolute value. Only used in OpenImage Dataset.
+            Default: False.
         file_client_args (dict): Arguments to instantiate a FileClient.
             See :class:`mmcv.fileio.FileClient` for details.
             Defaults to ``dict(backend='disk')``.
@@ -223,12 +227,14 @@ class LoadAnnotations:
                  with_mask=False,
                  with_seg=False,
                  poly2mask=True,
+                 denorm_bbox=False,
                  file_client_args=dict(backend='disk')):
         self.with_bbox = with_bbox
         self.with_label = with_label
         self.with_mask = with_mask
         self.with_seg = with_seg
         self.poly2mask = poly2mask
+        self.denorm_bbox = denorm_bbox
         self.file_client_args = file_client_args.copy()
         self.file_client = None
 
@@ -245,11 +251,24 @@ class LoadAnnotations:
         ann_info = results['ann_info']
         results['gt_bboxes'] = ann_info['bboxes'].copy()
 
+        if self.denorm_bbox:
+            h, w = results['img_shape'][:2]
+            bbox_num = results['gt_bboxes'].shape[0]
+            if bbox_num != 0:
+                results['gt_bboxes'][:, 0::2] *= w
+                results['gt_bboxes'][:, 1::2] *= h
+            results['gt_bboxes'] = results['gt_bboxes'].astype(np.float32)
+
         gt_bboxes_ignore = ann_info.get('bboxes_ignore', None)
         if gt_bboxes_ignore is not None:
             results['gt_bboxes_ignore'] = gt_bboxes_ignore.copy()
             results['bbox_fields'].append('gt_bboxes_ignore')
         results['bbox_fields'].append('gt_bboxes')
+
+        gt_is_group_ofs = ann_info.get('gt_is_group_ofs', None)
+        if gt_is_group_ofs is not None:
+            results['gt_is_group_ofs'] = gt_is_group_ofs.copy()
+
         return results
 
     def _load_labels(self, results):
@@ -426,6 +445,10 @@ class LoadPanopticAnnotations(LoadAnnotations):
     def _load_masks_and_semantic_segs(self, results):
         """Private function to load mask and semantic segmentation annotations.
 
+        In gt_semantic_seg, the foreground label is from `0` to
+        `num_things - 1`, the background label is from `num_things` to
+        `num_things + num_stuff - 1`, 255 means the ignored label (`VOID`).
+
         Args:
             results (dict): Result dict from :obj:`mmdet.CustomDataset`.
 
@@ -436,20 +459,20 @@ class LoadPanopticAnnotations(LoadAnnotations):
 
         if self.file_client is None:
             self.file_client = mmcv.FileClient(**self.file_client_args)
+
         filename = osp.join(results['seg_prefix'],
                             results['ann_info']['seg_map'])
-
         img_bytes = self.file_client.get(filename)
         pan_png = mmcv.imfrombytes(
             img_bytes, flag='color', channel_order='rgb').squeeze()
         pan_png = rgb2id(pan_png)
 
         gt_masks = []
-        gt_seg = np.zeros_like(pan_png)  # 0 as ignore
+        gt_seg = np.zeros_like(pan_png) + 255  # 255 as ignore
 
         for mask_info in results['ann_info']['masks']:
             mask = (pan_png == mask_info['id'])
-            gt_seg = np.where(mask, mask_info['category'] + 1, gt_seg)
+            gt_seg = np.where(mask, mask_info['category'], gt_seg)
 
             # The legal thing masks
             if mask_info.get('is_thing'):
@@ -533,7 +556,7 @@ class LoadProposals:
 
     def __repr__(self):
         return self.__class__.__name__ + \
-            f'(num_max_proposals={self.num_max_proposals})'
+               f'(num_max_proposals={self.num_max_proposals})'
 
 
 @PIPELINES.register_module()
@@ -543,23 +566,36 @@ class FilterAnnotations:
     Args:
         min_gt_bbox_wh (tuple[int]): Minimum width and height of ground truth
             boxes.
+        keep_empty (bool): Whether to return None when it
+            becomes an empty bbox after filtering. Default: True
     """
 
-    def __init__(self, min_gt_bbox_wh):
+    def __init__(self, min_gt_bbox_wh, keep_empty=True):
         # TODO: add more filter options
         self.min_gt_bbox_wh = min_gt_bbox_wh
+        self.keep_empty = keep_empty
 
     def __call__(self, results):
         assert 'gt_bboxes' in results
         gt_bboxes = results['gt_bboxes']
+        if gt_bboxes.shape[0] == 0:
+            return results
         w = gt_bboxes[:, 2] - gt_bboxes[:, 0]
         h = gt_bboxes[:, 3] - gt_bboxes[:, 1]
         keep = (w > self.min_gt_bbox_wh[0]) & (h > self.min_gt_bbox_wh[1])
         if not keep.any():
-            return None
+            if self.keep_empty:
+                return None
+            else:
+                return results
         else:
             keys = ('gt_bboxes', 'gt_labels', 'gt_masks', 'gt_semantic_seg')
             for key in keys:
                 if key in results:
                     results[key] = results[key][keep]
             return results
+
+    def __repr__(self):
+        return self.__class__.__name__ + \
+               f'(min_gt_bbox_wh={self.min_gt_bbox_wh},' \
+               f'always_keep={self.always_keep})'

@@ -1,3 +1,4 @@
+# Copyright (c) OpenMMLab. All rights reserved.
 import copy
 
 import mmcv
@@ -5,38 +6,8 @@ import numpy as np
 from mmcv.utils import build_from_cfg
 from numpy.testing import assert_array_equal
 
-from mmdet.core.mask import BitmapMasks, PolygonMasks
 from mmdet.datasets.builder import PIPELINES
-
-
-def construct_toy_data(poly2mask=True):
-    img = np.array([[1, 2, 3, 4], [5, 6, 7, 8]], dtype=np.uint8)
-    img = np.stack([img, img, img], axis=-1)
-    results = dict()
-    # image
-    results['img'] = img
-    results['img_shape'] = img.shape
-    results['img_fields'] = ['img']
-    # bboxes
-    results['bbox_fields'] = ['gt_bboxes', 'gt_bboxes_ignore']
-    results['gt_bboxes'] = np.array([[0., 0., 2., 1.]], dtype=np.float32)
-    results['gt_bboxes_ignore'] = np.array([[2., 0., 3., 1.]],
-                                           dtype=np.float32)
-    # labels
-    results['gt_labels'] = np.array([1], dtype=np.int64)
-    # masks
-    results['mask_fields'] = ['gt_masks']
-    if poly2mask:
-        gt_masks = np.array([[0, 1, 1, 0], [0, 1, 0, 0]],
-                            dtype=np.uint8)[None, :, :]
-        results['gt_masks'] = BitmapMasks(gt_masks, 2, 4)
-    else:
-        raw_masks = [[np.array([1, 0, 2, 0, 2, 1, 1, 1], dtype=np.float)]]
-        results['gt_masks'] = PolygonMasks(raw_masks, 2, 4)
-    # segmentations
-    results['seg_fields'] = ['gt_semantic_seg']
-    results['gt_semantic_seg'] = img[..., 0]
-    return results
+from .utils import construct_toy_data
 
 
 def test_adjust_color():
@@ -74,7 +45,7 @@ def test_imequalize(nb_rand_test=100):
 
     def _imequalize(img):
         # equalize the image using PIL.ImageOps.equalize
-        from PIL import ImageOps, Image
+        from PIL import Image, ImageOps
         img = Image.fromarray(img)
         equalized_img = np.asarray(ImageOps.equalize(img))
         return equalized_img
@@ -110,8 +81,8 @@ def test_adjust_brightness(nb_rand_test=100):
     def _adjust_brightness(img, factor):
         # adjust the brightness of image using
         # PIL.ImageEnhance.Brightness
-        from PIL.ImageEnhance import Brightness
         from PIL import Image
+        from PIL.ImageEnhance import Brightness
         img = Image.fromarray(img)
         brightened_img = Brightness(img).enhance(factor)
         return np.asarray(brightened_img)
@@ -153,8 +124,9 @@ def test_adjust_brightness(nb_rand_test=100):
 def test_adjust_contrast(nb_rand_test=100):
 
     def _adjust_contrast(img, factor):
-        from PIL.ImageEnhance import Contrast
         from PIL import Image
+        from PIL.ImageEnhance import Contrast
+
         # Image.fromarray defaultly supports RGB, not BGR.
         # convert from BGR to RGB
         img = Image.fromarray(img[..., ::-1], mode='RGB')

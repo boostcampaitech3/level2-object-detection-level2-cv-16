@@ -1,3 +1,4 @@
+# Copyright (c) OpenMMLab. All rights reserved.
 # Modified from https://github.com/facebookresearch/detectron2/blob/master/detectron2/data/datasets/cityscapes.py # noqa
 # and https://github.com/mcordts/cityscapesScripts/blob/master/cityscapesscripts/evaluation/evalInstanceLevelSemanticLabeling.py # noqa
 
@@ -21,6 +22,9 @@ class CityscapesDataset(CocoDataset):
 
     CLASSES = ('person', 'rider', 'car', 'truck', 'bus', 'train', 'motorcycle',
                'bicycle')
+
+    PALETTE = [(220, 20, 60), (255, 0, 0), (0, 0, 142), (0, 0, 70),
+               (0, 60, 100), (0, 80, 100), (0, 0, 230), (119, 11, 32)]
 
     def _filter_imgs(self, min_size=32):
         """Filter images too small or without ground truths."""
