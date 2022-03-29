@@ -1,31 +1,28 @@
+# Copyright (c) OpenMMLab. All rights reserved.
+import itertools
 import os
 from collections import defaultdict
 
 import mmcv
 import numpy as np
 from mmcv.utils import print_log
+from terminaltables import AsciiTable
 
-from .api_wrappers import COCO
+from mmdet.core import INSTANCE_OFFSET
+from .api_wrappers import COCO, pq_compute_multi_core
 from .builder import DATASETS
 from .coco import CocoDataset
 
 try:
     import panopticapi
-    from panopticapi.evaluation import pq_compute_multi_core, VOID
+    from panopticapi.evaluation import VOID
     from panopticapi.utils import id2rgb
 except ImportError:
     panopticapi = None
-    pq_compute_multi_core = None
     id2rgb = None
     VOID = None
 
 __all__ = ['CocoPanopticDataset']
-
-# A custom value to distinguish instance ID and category ID; need to
-# be greater than the number of categories.
-# For a pixel in the panoptic result map:
-#   pan_id = ins_id * INSTANCE_OFFSET + cat_id
-INSTANCE_OFFSET = 1000
 
 
 class COCOPanoptic(COCO):
@@ -44,7 +41,7 @@ class COCOPanoptic(COCO):
                 'pip install git+https://github.com/cocodataset/'
                 'panopticapi.git.')
 
-        super(COCO, self).__init__(annotation_file)
+        super(COCOPanoptic, self).__init__(annotation_file)
 
     def createIndex(self):
         # create index
@@ -55,6 +52,7 @@ class COCOPanoptic(COCO):
         if 'annotations' in self.dataset:
             for ann, img_info in zip(self.dataset['annotations'],
                                      self.dataset['images']):
+                img_info['segm_file'] = ann['file_name']
                 for seg_ann in ann['segments_info']:
                     # to match with instance.json
                     seg_ann['image_id'] = ann['image_id']
@@ -198,6 +196,43 @@ class CocoPanopticDataset(CocoDataset):
         'rock-merged', 'wall-other-merged', 'rug-merged'
     ]
 
+    PALETTE = [(220, 20, 60), (119, 11, 32), (0, 0, 142), (0, 0, 230),
+               (106, 0, 228), (0, 60, 100), (0, 80, 100), (0, 0, 70),
+               (0, 0, 192), (250, 170, 30), (100, 170, 30), (220, 220, 0),
+               (175, 116, 175), (250, 0, 30), (165, 42, 42), (255, 77, 255),
+               (0, 226, 252), (182, 182, 255), (0, 82, 0), (120, 166, 157),
+               (110, 76, 0), (174, 57, 255), (199, 100, 0), (72, 0, 118),
+               (255, 179, 240), (0, 125, 92), (209, 0, 151), (188, 208, 182),
+               (0, 220, 176), (255, 99, 164), (92, 0, 73), (133, 129, 255),
+               (78, 180, 255), (0, 228, 0), (174, 255, 243), (45, 89, 255),
+               (134, 134, 103), (145, 148, 174), (255, 208, 186),
+               (197, 226, 255), (171, 134, 1), (109, 63, 54), (207, 138, 255),
+               (151, 0, 95), (9, 80, 61), (84, 105, 51), (74, 65, 105),
+               (166, 196, 102), (208, 195, 210), (255, 109, 65), (0, 143, 149),
+               (179, 0, 194), (209, 99, 106), (5, 121, 0), (227, 255, 205),
+               (147, 186, 208), (153, 69, 1), (3, 95, 161), (163, 255, 0),
+               (119, 0, 170), (0, 182, 199), (0, 165, 120), (183, 130, 88),
+               (95, 32, 0), (130, 114, 135), (110, 129, 133), (166, 74, 118),
+               (219, 142, 185), (79, 210, 114), (178, 90, 62), (65, 70, 15),
+               (127, 167, 115), (59, 105, 106), (142, 108, 45), (196, 172, 0),
+               (95, 54, 80), (128, 76, 255), (201, 57, 1), (246, 0, 122),
+               (191, 162, 208), (255, 255, 128), (147, 211, 203),
+               (150, 100, 100), (168, 171, 172), (146, 112, 198),
+               (210, 170, 100), (92, 136, 89), (218, 88, 184), (241, 129, 0),
+               (217, 17, 255), (124, 74, 181), (70, 70, 70), (255, 228, 255),
+               (154, 208, 0), (193, 0, 92), (76, 91, 113), (255, 180, 195),
+               (106, 154, 176),
+               (230, 150, 140), (60, 143, 255), (128, 64, 128), (92, 82, 55),
+               (254, 212, 124), (73, 77, 174), (255, 160, 98), (255, 255, 255),
+               (104, 84, 109), (169, 164, 131), (225, 199, 255), (137, 54, 74),
+               (135, 158, 223), (7, 246, 231), (107, 255, 200), (58, 41, 149),
+               (183, 121, 142), (255, 73, 97), (107, 142, 35), (190, 153, 153),
+               (146, 139, 141),
+               (70, 130, 180), (134, 199, 156), (209, 226, 140), (96, 36, 108),
+               (96, 96, 96), (64, 170, 64), (152, 251, 152), (208, 229, 228),
+               (206, 186, 171), (152, 161, 64), (116, 112, 0), (0, 114, 143),
+               (102, 102, 156), (250, 141, 255)]
+
     def load_annotations(self, ann_file):
         """Load annotation from COCO Panoptic style annotation file.
 
@@ -327,7 +362,7 @@ class CocoPanopticDataset(CocoDataset):
     def _pan2json(self, results, outfile_prefix):
         """Convert panoptic results to COCO panoptic json style."""
         label2cat = dict((v, k) for (k, v) in self.cat2label.items())
-        pan_json_results = []
+        pred_annotations = []
         outdir = os.path.join(os.path.dirname(outfile_prefix), 'panoptic')
 
         for idx in range(len(self)):
@@ -362,7 +397,8 @@ class CocoPanopticDataset(CocoDataset):
                 'segments_info': segm_info,
                 'file_name': segm_file
             }
-            pan_json_results.append(record)
+            pred_annotations.append(record)
+        pan_json_results = dict(annotations=pred_annotations)
         return pan_json_results
 
     def results2json(self, results, outfile_prefix):
@@ -386,16 +422,22 @@ class CocoPanopticDataset(CocoDataset):
 
         return result_files
 
-    def evaluate_pan_json(self, result_files, outfile_prefix, logger=None):
+    def evaluate_pan_json(self,
+                          result_files,
+                          outfile_prefix,
+                          logger=None,
+                          classwise=False):
         """Evaluate PQ according to the panoptic results json file."""
+        imgs = self.coco.imgs
         gt_json = self.coco.img_ann_map  # image to annotations
         gt_json = [{
             'image_id': k,
             'segments_info': v,
-            'file_name': self.formatter.format(k)
+            'file_name': imgs[k]['segm_file']
         } for k, v in gt_json.items()]
         pred_json = mmcv.load(result_files['panoptic'])
-        pred_json = dict((el['image_id'], el) for el in pred_json)
+        pred_json = dict(
+            (el['image_id'], el) for el in pred_json['annotations'])
 
         # match the gt_anns and pred_anns in the same image
         matched_annotations_list = []
@@ -410,58 +452,56 @@ class CocoPanopticDataset(CocoDataset):
         pred_folder = os.path.join(os.path.dirname(outfile_prefix), 'panoptic')
 
         pq_stat = pq_compute_multi_core(matched_annotations_list, gt_folder,
-                                        pred_folder, self.categories)
-
-        eval_results = {}
+                                        pred_folder, self.categories,
+                                        self.file_client)
 
         metrics = [('All', None), ('Things', True), ('Stuff', False)]
         pq_results = {}
 
-        output = '\n'
         for name, isthing in metrics:
-            pq_results[name], per_class_pq_results = pq_stat.pq_average(
+            pq_results[name], classwise_results = pq_stat.pq_average(
                 self.categories, isthing=isthing)
             if name == 'All':
-                pq_results['per_class'] = per_class_pq_results
-        output += ('{:10s}| {:>5s}  {:>5s}  {:>5s} {:>5s}\n'.format(
-            '', 'PQ', 'SQ', 'RQ', 'N'))
-        output += ('-' * (10 + 7 * 4) + '\n')
+                pq_results['classwise'] = classwise_results
 
-        for name, _isthing in metrics:
-            output += '{:10s}| {:5.2f}  {:5.2f}  {:5.2f} {:5d}\n'.format(
-                name, 100 * pq_results[name]['pq'],
-                100 * pq_results[name]['sq'], 100 * pq_results[name]['rq'],
-                pq_results[name]['n'])
-            eval_results[f'{name}_pq'] = pq_results[name]['pq'] * 100.0
-            eval_results[f'{name}_sq'] = pq_results[name]['sq'] * 100.0
-            eval_results[f'{name}_rq'] = pq_results[name]['rq'] * 100.0
-        print_log(output, logger=logger)
+        classwise_results = None
+        if classwise:
+            classwise_results = {
+                k: v
+                for k, v in zip(self.CLASSES, pq_results['classwise'].values())
+            }
+        print_panoptic_table(pq_results, classwise_results, logger=logger)
 
-        return eval_results
+        return parse_pq_results(pq_results)
 
     def evaluate(self,
                  results,
-                 metric='pq',
+                 metric='PQ',
                  logger=None,
                  jsonfile_prefix=None,
+                 classwise=False,
                  **kwargs):
         """Evaluation in COCO Panoptic protocol.
 
         Args:
             results (list[dict]): Testing results of the dataset.
             metric (str | list[str]): Metrics to be evaluated. Only
-                support 'pq' at present.
+                support 'PQ' at present. 'pq' will be regarded as 'PQ.
             logger (logging.Logger | str | None): Logger used for printing
                 related information during evaluation. Default: None.
             jsonfile_prefix (str | None): The prefix of json files. It includes
                 the file path and the prefix of filename, e.g., "a/b/prefix".
                 If not specified, a temp file will be created. Default: None.
+            classwise (bool): Whether to print classwise evaluation results.
+                Default: False.
 
         Returns:
             dict[str, float]: COCO Panoptic style evaluation metric.
         """
         metrics = metric if isinstance(metric, list) else [metric]
-        allowed_metrics = ['pq']  # todo: support other metrics like 'bbox'
+        # Compatible with lowercase 'pq'
+        metrics = ['PQ' if metric == 'pq' else metric for metric in metrics]
+        allowed_metrics = ['PQ']  # todo: support other metrics like 'bbox'
         for metric in metrics:
             if metric not in allowed_metrics:
                 raise KeyError(f'metric {metric} is not supported')
@@ -469,12 +509,68 @@ class CocoPanopticDataset(CocoDataset):
         result_files, tmp_dir = self.format_results(results, jsonfile_prefix)
         eval_results = {}
 
-        outfile_prefix = tmp_dir if tmp_dir is not None else jsonfile_prefix
-        if 'pq' in metrics:
+        outfile_prefix = os.path.join(tmp_dir.name, 'results') \
+            if tmp_dir is not None else jsonfile_prefix
+        if 'PQ' in metrics:
             eval_pan_results = self.evaluate_pan_json(result_files,
-                                                      outfile_prefix, logger)
+                                                      outfile_prefix, logger,
+                                                      classwise)
             eval_results.update(eval_pan_results)
 
         if tmp_dir is not None:
             tmp_dir.cleanup()
         return eval_results
+
+
+def parse_pq_results(pq_results):
+    """Parse the Panoptic Quality results."""
+    result = dict()
+    result['PQ'] = 100 * pq_results['All']['pq']
+    result['SQ'] = 100 * pq_results['All']['sq']
+    result['RQ'] = 100 * pq_results['All']['rq']
+    result['PQ_th'] = 100 * pq_results['Things']['pq']
+    result['SQ_th'] = 100 * pq_results['Things']['sq']
+    result['RQ_th'] = 100 * pq_results['Things']['rq']
+    result['PQ_st'] = 100 * pq_results['Stuff']['pq']
+    result['SQ_st'] = 100 * pq_results['Stuff']['sq']
+    result['RQ_st'] = 100 * pq_results['Stuff']['rq']
+    return result
+
+
+def print_panoptic_table(pq_results, classwise_results=None, logger=None):
+    """Print the panoptic evaluation results table.
+
+    Args:
+        pq_results(dict): The Panoptic Quality results.
+        classwise_results(dict | None): The classwise Panoptic Quality results.
+            The keys are class names and the values are metrics.
+        logger (logging.Logger | str | None): Logger used for printing
+            related information during evaluation. Default: None.
+    """
+
+    headers = ['', 'PQ', 'SQ', 'RQ', 'categories']
+    data = [headers]
+    for name in ['All', 'Things', 'Stuff']:
+        numbers = [
+            f'{(pq_results[name][k] * 100):0.3f}' for k in ['pq', 'sq', 'rq']
+        ]
+        row = [name] + numbers + [pq_results[name]['n']]
+        data.append(row)
+    table = AsciiTable(data)
+    print_log('Panoptic Evaluation Results:\n' + table.table, logger=logger)
+
+    if classwise_results is not None:
+        class_metrics = [(name, ) + tuple(f'{(metrics[k] * 100):0.3f}'
+                                          for k in ['pq', 'sq', 'rq'])
+                         for name, metrics in classwise_results.items()]
+        num_columns = min(8, len(class_metrics) * 4)
+        results_flatten = list(itertools.chain(*class_metrics))
+        headers = ['category', 'PQ', 'SQ', 'RQ'] * (num_columns // 4)
+        results_2d = itertools.zip_longest(
+            *[results_flatten[i::num_columns] for i in range(num_columns)])
+        data = [headers]
+        data += [result for result in results_2d]
+        table = AsciiTable(data)
+        print_log(
+            'Classwise Panoptic Evaluation Results:\n' + table.table,
+            logger=logger)
