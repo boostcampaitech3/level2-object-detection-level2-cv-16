@@ -44,6 +44,12 @@ runner = dict(max_epochs=12)
 log_config = dict(
             interval=50,
             hooks=[
-                dict(type='MlflowLoggerHook', exp_name='exp1'),
-                dict(type='TextLoggerHook')
+                dict(type='MlflowLoggerHook', exp_name='exp2'),
+                dict(type='TextLoggerHook'),
+                dict(type='WandbLoggerHook',
+                     init_kwargs={
+                         'entity': 'sodabeans',
+                         'project': 'mmdetection',
+                         'name': 'exp3'
+                     })
             ])

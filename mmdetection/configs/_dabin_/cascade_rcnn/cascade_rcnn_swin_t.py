@@ -38,5 +38,19 @@ optimizer = dict(
             'relative_position_bias_table': dict(decay_mult=0.),
             'norm': dict(decay_mult=0.)
         }))
-lr_config = dict(warmup_iters=1000, step=[8, 11])
+# lr_config = dict(warmup_iters=1000, step=[8, 11])
+lr_config = dict(min_lr_ratio=0.001)
 runner = dict(max_epochs=12)
+
+log_config = dict(
+            interval=50,
+            hooks=[
+                dict(type='MlflowLoggerHook', exp_name='cascade_rcnn_swin_t_exp'),
+                dict(type='TextLoggerHook'),
+                dict(type='WandbLoggerHook',
+                     init_kwargs={
+                         'entity': 'sodabeans',
+                         'project': 'mmdetection',
+                         'name': 'cascade_rcnn_swin_t_exp2'
+                     })
+            ])

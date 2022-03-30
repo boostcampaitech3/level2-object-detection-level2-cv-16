@@ -1,2 +1,3 @@
 mlruns/
 work_dir/
+wandb/
