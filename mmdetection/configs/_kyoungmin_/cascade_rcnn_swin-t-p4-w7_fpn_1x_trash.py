@@ -26,6 +26,12 @@ model = dict(
         init_cfg=dict(type='Pretrained', checkpoint=pretrained)),
     neck=dict(in_channels=[96, 192, 384, 768]))
 
+log_config = dict(
+            interval=50,
+            hooks=[dict(type='MlflowLoggerHook',
+                        exp_name='exp1')
+            ])
+
 optimizer = dict(
     _delete_=True,
     type='AdamW',
