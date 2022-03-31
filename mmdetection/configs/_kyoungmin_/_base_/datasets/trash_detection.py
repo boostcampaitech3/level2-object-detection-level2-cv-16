@@ -7,6 +7,15 @@ img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 albu_train_transforms = [
     dict(
+        type='HorizontalFlip',
+        p=0.5),
+    dict(
+        type='VerticalFlip',
+        p=0.5),
+    dict(
+        type='Rotate',
+        p=0.5),
+    dict(
         type='RandomBrightness',
         limit=[0.0, 0.24],
         p=0.5),
@@ -14,6 +23,10 @@ albu_train_transforms = [
         type='CLAHE',
         clip_limit=7.0,
         p=0.5),
+    dict(
+        type='Cutout',
+        p=0.7,
+        num_holes=10),
 ]
 train_pipeline = [
     dict(type='LoadImageFromFile'),

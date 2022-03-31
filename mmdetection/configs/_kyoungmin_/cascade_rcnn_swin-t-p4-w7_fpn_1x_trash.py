@@ -29,7 +29,7 @@ model = dict(
 log_config = dict(
             interval=50,
             hooks=[dict(type='MlflowLoggerHook',
-                        exp_name='exp1')
+                        exp_name='exp2')
             ])
 
 optimizer = dict(
