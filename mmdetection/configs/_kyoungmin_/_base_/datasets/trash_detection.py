@@ -7,26 +7,38 @@ img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 albu_train_transforms = [
     dict(
+        type='OneOf',
+        transforms=[
+            dict(
+                type='HueSaturationValue',
+                hue_shift_limit=0.4,
+                sat_shift_limit= 0.4, 
+                val_shift_limit=0.4,
+                p=0.8),
+            dict(
+                type='RandomBrightnessContrast',
+                brightness_limit=0.4,
+                contrast_limit=0.4,
+                p=0.8)
+        ],
+        p=0.1),
+    dict(
+        type='Rotate',
+        limit=15,
+        interpolation=1,
+        border_mode=4,
+        value=None,
+        mask_value=None,
+        p=0.8),
+    dict(
         type='HorizontalFlip',
         p=0.5),
     dict(
         type='VerticalFlip',
         p=0.5),
     dict(
-        type='Rotate',
-        p=0.5),
-    dict(
-        type='RandomBrightness',
-        limit=[0.0, 0.24],
-        p=0.5),
-    dict(
         type='CLAHE',
-        clip_limit=7.0,
-        p=0.5),
-    dict(
-        type='Cutout',
-        p=0.7,
-        num_holes=10),
+        p=0.7),
 ]
 train_pipeline = [
     dict(type='LoadImageFromFile'),
