@@ -7,5 +7,5 @@ _base_ = [
 log_config = dict(
             interval=50,
             hooks=[dict(type='MlflowLoggerHook',
-                        exp_name='train0-val0')
+                        exp_name='train4-val4')
             ])
