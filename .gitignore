@@ -1,3 +1,5 @@
 mlruns/
 work_dir/
 wandb/
+inference_json/
+runs/
