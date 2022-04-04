@@ -6,8 +6,10 @@ lr_config = dict(
     # policy='step',
     policy='CosineAnnealing',
     warmup='linear',
-    by_epoch=False,
     warmup_iters=1000,
-    warmup_ratio=0.01)
-    # step=[8, 11])
+    warmup_ratio=0.01,
+    # step=[8, 11],
+    by_epoch=False,
+    )
+
 runner = dict(type='EpochBasedRunner', max_epochs=12)

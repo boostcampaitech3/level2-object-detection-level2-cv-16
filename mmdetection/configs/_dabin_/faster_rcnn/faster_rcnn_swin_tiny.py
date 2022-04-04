@@ -39,17 +39,18 @@ optimizer = dict(
             'norm': dict(decay_mult=0.)
         }))
 lr_config = dict(min_lr_ratio=0.001)
+# lr_config = dict(step=[8, 11])
 runner = dict(max_epochs=12)
 
 log_config = dict(
             interval=50,
             hooks=[
-                dict(type='MlflowLoggerHook', exp_name='exp2'),
+                dict(type='MlflowLoggerHook', exp_name='fasterrcnn_swintiny'),
                 dict(type='TextLoggerHook'),
                 dict(type='WandbLoggerHook',
                      init_kwargs={
                          'entity': 'sodabeans',
-                         'project': 'mmdetection',
-                         'name': 'exp3'
+                         'project': 'fasterrcnn_swintiny',
+                         'name': 'cosann_epoch'
                      })
             ])
