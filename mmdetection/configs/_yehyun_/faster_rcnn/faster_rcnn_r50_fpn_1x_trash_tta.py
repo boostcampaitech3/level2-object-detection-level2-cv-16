@@ -6,8 +6,8 @@ _base_ = [
 ]
 
 log_config = dict(
-            interval=150,
+            interval=200,
             hooks=[
                 dict(type='MlflowLoggerHook', exp_name='faster_rcnn_r50_fpn_1x_trash_tta'),
-                # dict(type='TextLoggerHook')
+                dict(type='TextLoggerHook')
             ])
