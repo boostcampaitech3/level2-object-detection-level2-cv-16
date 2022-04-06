@@ -1,0 +1,4 @@
+artifact_location: file:///opt/ml/level2-object-detection-level2-cv-16/UniverseNet/mlruns/3
+experiment_id: '3'
+lifecycle_stage: active
+name: cascade_rcnn_swin-l-p4-w7_fpn_1x_trash
