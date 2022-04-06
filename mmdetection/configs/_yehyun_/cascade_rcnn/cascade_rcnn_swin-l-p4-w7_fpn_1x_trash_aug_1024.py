@@ -1,6 +1,6 @@
 _base_ = [
     '../_base_/models/cascade_rcnn_r50_fpn.py',
-    '../_base_/datasets/trash_detection.py',
+    '../_base_/datasets/trash_detection_aug_1024.py',
     '../_base_/schedules/schedule_1x.py', 
     '../_base_/default_runtime.py'
 ]
@@ -29,7 +29,7 @@ model = dict(
         with_cp=False,
         convert_weights=True,
         init_cfg=dict(type='Pretrained', checkpoint=pretrained)),
-    neck=dict(in_channels=[192, 384, 768, 1536]))
+    neck=dict(type='PAFPN',in_channels=[192, 384, 768, 1536]))
 
 optimizer = dict(
     ## 기존에는 ssd optimizer였지만, adamw에 맞게 parameter 맞추기 위해 delete 진행
@@ -47,12 +47,12 @@ optimizer = dict(
 
 interval = 2
 
-lr_config = dict(warmup_iters=1000, step=[8, 11])
+lr_config = dict(warmup_iters=1000, step=[10, 16])
 checkpoint_config = dict(interval=interval)
-runner = dict(max_epochs=16)
+runner = dict(max_epochs=20)
 
 log_config = dict(
-            interval=50,
+            interval=200,
             hooks=[
                 dict(type='MlflowLoggerHook', exp_name='cascade_rcnn_swin-l-p4-w7_fpn_1x_trash'),
                 dict(type='TextLoggerHook')
