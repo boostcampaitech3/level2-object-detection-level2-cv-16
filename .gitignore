@@ -1,6 +1,2 @@
 /dataset
-/sample_submission
-/submission_to_json.py
-/visualization.py
 /mmdetection/mlruns
-/json_file
