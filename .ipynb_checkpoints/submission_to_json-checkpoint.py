@@ -1,7 +1,7 @@
 import pandas as pd
 import json
 
-csv_dir = "/opt/ml/level2-object-detection-level2-cv-16/mmdetection/work_dirs/cascade_rcnn_swin-t-p4-w7_fpn_1x_trash/submission_latest.csv"
+csv_dir = "/opt/ml/level2-object-detection-level2-cv-16/sample_submission/ensemble_wbf_with_weight.csv"
 pred_df = pd.read_csv(csv_dir)
 
 dic = {
@@ -79,6 +79,6 @@ for img_idx,box in enumerate(bboxes):
             box_id += 1
         lst.append(b)
 
-json_dir = './json_file/cascade_rcnn_swin-t-p4-w7_fpn_1x_trash.json'
+json_dir = './json_file/ensemble_wbf_with_weight.json'
 with open(json_dir,'w') as f:
     json.dump(dic,f)
