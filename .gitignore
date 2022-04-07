@@ -3,3 +3,6 @@ work_dir/
 wandb/
 inference_json/
 runs/
+yolov5/
+convert2Yolo/
+datasetyolo5/
