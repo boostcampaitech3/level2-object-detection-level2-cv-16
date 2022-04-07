@@ -73,13 +73,13 @@ data = dict(
     train=dict(
         type=dataset_type,
         classes=classes,
-        ann_file=data_root + 'train3.json',
+        ann_file=data_root + 'train.json',
         img_prefix=data_root,
         pipeline=train_pipeline),
     val=dict(
         type=dataset_type,
         classes=classes,
-        ann_file=data_root + 'val3.json',
+        ann_file=data_root + 'test.json',
         img_prefix=data_root,
         pipeline=test_pipeline),
     test=dict(
@@ -88,4 +88,5 @@ data = dict(
         ann_file=data_root + 'test.json',
         img_prefix=data_root,
         pipeline=test_pipeline))
-evaluation = dict(interval=1, metric='bbox')
+
+evaluation = dict(interval=1, classwise=True, metric=['bbox'])

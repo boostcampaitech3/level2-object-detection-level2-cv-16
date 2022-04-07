@@ -1,5 +1,5 @@
 artifact_uri: file:///opt/ml/level2-object-detection-level2-cv-16/UniverseNet/mlruns/3/7fa6d97f5d674459a1dbf76850a1a7d8/artifacts
-end_time: null
+end_time: 1649237986753
 entry_point_name: ''
 experiment_id: '3'
 lifecycle_stage: active
@@ -10,6 +10,6 @@ source_name: ''
 source_type: 4
 source_version: ''
 start_time: 1649180497285
-status: 1
+status: 3
 tags: []
 user_id: root
