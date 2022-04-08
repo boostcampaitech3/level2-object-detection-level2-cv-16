@@ -6,3 +6,4 @@ runs/
 yolov5/
 convert2Yolo/
 datasetyolo5/
+outputs/
