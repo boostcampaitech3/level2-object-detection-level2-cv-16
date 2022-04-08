@@ -1,0 +1,4 @@
+artifact_location: file:///opt/ml/level2-object-detection-level2-cv-16/mmdetection/mlruns/17
+experiment_id: '17'
+lifecycle_stage: active
+name: 'exp12: Cascade R-CNN train3-valid3'

@@ -1,0 +1,15 @@
+artifact_uri: file:///opt/ml/level2-object-detection-level2-cv-16/mmdetection/mlruns/18/7563fa3dcee040bc87f86daed35df32a/artifacts
+end_time: 1649298182590
+entry_point_name: ''
+experiment_id: '18'
+lifecycle_stage: active
+name: ''
+run_id: 7563fa3dcee040bc87f86daed35df32a
+run_uuid: 7563fa3dcee040bc87f86daed35df32a
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1649285278938
+status: 3
+tags: []
+user_id: root

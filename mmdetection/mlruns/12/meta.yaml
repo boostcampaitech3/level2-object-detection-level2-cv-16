@@ -1,0 +1,4 @@
+artifact_location: file:///opt/ml/level2-object-detection-level2-cv-16/mmdetection/mlruns/12
+experiment_id: '12'
+lifecycle_stage: active
+name: 'exp7: 1024 Augmentation Case 1'
