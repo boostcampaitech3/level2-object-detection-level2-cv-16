@@ -19,7 +19,7 @@
 | [Github](https://github.com/tnsgh9603) | [Github](https://github.com/sodabeans) | [Github](https://github.com/justbeaver97) | [Github](https://github.com/SSANGYOON?tab=repositories) | [Github](https://github.com/seoulsky-field) |
 <br>
 
-### 🌏 Contribution
+### 🌏 Contributions
 
 - 권순호: Faster-RCNN, Cascade-RCNN, Swin-Large,Step, LRscheduler, Ensemble
 - 서다빈: Cascade-RCNN, Swin-T ,CosineAnnealing, FocalLoss, YOLOV5, Optimizer 비교(SGD,Adam,AdamW), TTA, Ensemble
@@ -101,14 +101,13 @@
 ```
 <br>
 
-### 👨‍🏫 Evaluation Method
+### 👨‍🏫 Evaluation Methods
 
-![image](https://user-images.githubusercontent.com/83350060/163540654-9445026b-62c3-4e7b-9153-7dd530ac08f5.png)
+<img src="https://latex.codecogs.com/png.image?\inline&space;\huge&space;\dpi{100}\bg{white}\textup{Precision}=\frac{TP}{TP&plus;FP}=\frac{TP}{\textup{All&space;Detections}}">
 
-![image](https://user-images.githubusercontent.com/83350060/163540670-a6662cff-83a8-41ca-94f0-4e8f96dfad3d.png)
+<img src="https://latex.codecogs.com/png.image?\inline&space;\huge&space;\dpi{100}\bg{white}\textup{Recall}=\frac{TP}{TP&plus;FN}=\frac{TP}{\textup{All&space;Ground&space;Truths}}">
 
-![image](https://user-images.githubusercontent.com/83350060/163540688-16abd7dc-1417-4b77-a064-be2c7e44260d.png)
-<br>
+<img src="https://latex.codecogs.com/png.image?\inline&space;\huge&space;\dpi{100}\bg{white}\textup{mAP}=\frac{1}{n}\sum_{k=1}^{n}AP_{k}&space;\textup{&space;where&space;n&space;means&space;each&space;class}">
 
 ### 💯 Final Score
 
