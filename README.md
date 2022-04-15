@@ -7,7 +7,7 @@
 - Project Period
 2022.03.21 ~ 2022.04.08
 - Project Wrap Up Report
-[https://docs.google.com/document/d/1FQjrNkAzTjmcDyCJ-A_RBGPYQal9atp5TWX0vI9w6w4/edit](https://docs.google.com/document/d/1FQjrNkAzTjmcDyCJ-A_RBGPYQal9atp5TWX0vI9w6w4/edit)
+[Object Det_CV-16_Medic_팀 리포트](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/ff907b45-2d26-45df-9c24-7b0db6a1b00c/Object_Det_CV_팀_리포트(16조).pdf)
 <br>
 
 ## ♻️ 재활용 품목 분류를 위한 Object Detection 🗑
@@ -147,4 +147,4 @@ python tools/train.py <<directory_of_the_config_file>>
 
 ### 📄 Experiments & Submission Report
 
-(Notion): [https://seoulsky-field.notion.site/W10-12-Object-Detection-Project-Team-Medic-027299e9ecb64d01aa5dcbc07307aef0](https://www.notion.so/W10-12-Object-Detection-Project-Team-Medic-027299e9ecb64d01aa5dcbc07307aef0)
+[Notion](https://www.notion.so/W10-12-Object-Detection-Project-Team-Medic-027299e9ecb64d01aa5dcbc07307aef0)
