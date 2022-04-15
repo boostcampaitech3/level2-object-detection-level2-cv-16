@@ -1,0 +1,11 @@
+_base_ = [
+    '_base_/models/faster_rcnn_r50_fpn.py',
+    '_base_/datasets/trash_detection.py',
+    '_base_/schedules/schedule_1x.py', '_base_/default_runtime.py'
+]
+
+log_config = dict(
+            interval=50,
+            hooks=[dict(type='MlflowLoggerHook',
+                        exp_name='train4-val4')
+            ])

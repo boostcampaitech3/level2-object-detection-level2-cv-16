@@ -1,0 +1,4 @@
+artifact_location: file:///opt/ml/level2-object-detection-level2-cv-16/mmdetection/mlruns/6
+experiment_id: '6'
+lifecycle_stage: active
+name: train2-val2
