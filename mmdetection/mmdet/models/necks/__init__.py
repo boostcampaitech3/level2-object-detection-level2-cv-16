@@ -21,3 +21,4 @@ __all__ = [
     'NASFCOS_FPN', 'RFP', 'YOLOV3Neck', 'FPG', 'DilatedEncoder',
     'CTResNetNeck', 'SSDNeck', 'YOLOXPAFPN', 'DyHead'
 ]
+__all__ += ['SEPC', 'CBFPN']

@@ -1,3 +1,5 @@
+/dataset
+/mmdetection/mlruns
 mlruns/
 work_dir/
 wandb/

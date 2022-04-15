@@ -1,0 +1,4 @@
+artifact_location: file:///opt/ml/level2-object-detection-level2-cv-16/UniverseNet/mlruns/2
+experiment_id: '2'
+lifecycle_stage: active
+name: universenet101_gfl_fp16_4x4_mstrain_480_960_2x_trash
