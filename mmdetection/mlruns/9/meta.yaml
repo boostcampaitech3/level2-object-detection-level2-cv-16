@@ -1,0 +1,4 @@
+artifact_location: file:///opt/ml/level2-object-detection-level2-cv-16/mmdetection/mlruns/9
+experiment_id: '9'
+lifecycle_stage: active
+name: exp4(1024,1024)
